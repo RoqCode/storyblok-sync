@@ -3,6 +3,7 @@ package ui
 import (
 	"context"
 	"storyblok-sync/internal/config"
+	sync "storyblok-sync/internal/core/sync"
 	"storyblok-sync/internal/sb"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -47,38 +48,25 @@ type SearchState struct {
 	filteredIdx []int  // Mapping: sichtbarer Index -> original Index
 }
 
-// SyncState represents the action that will be performed for a story.
-// It is kept as a string to allow easy extension with additional states.
-type SyncState string
-
+// Unified Preflight state with core
+// State values: "create", "update", "skip"
+// Run values:   "pending", "running", "success", "failed"
 const (
-	StateCreate SyncState = "C"
-	StateUpdate SyncState = "U"
-	StateSkip   SyncState = "S"
+	StateCreate = "create"
+	StateUpdate = "update"
+	StateSkip   = "skip"
+
+	RunPending   = "pending"
+	RunRunning   = "running"
+	RunDone      = "success"
+	RunCancelled = "failed"
 )
 
-// RunState marks the execution state of a sync item.
-type RunState int
+// Use core PreflightItem directly (includes optional Issue field)
+type PreflightItem = sync.PreflightItem
 
-const (
-	RunPending RunState = iota
-	RunRunning
-	RunDone
-	RunCancelled
-)
-
-type PreflightItem struct {
-	Story     sb.Story
-	Collision bool
-	Skip      bool
-	Selected  bool
-	State     SyncState
-	Run       RunState
-	// Issue holds an inline message (warning or error) to display in UI
-	Issue string
-}
-
-func (it *PreflightItem) RecalcState() {
+// recalcState updates the textual state based on Skip/Collision
+func recalcState(it *PreflightItem) {
 	switch {
 	case it.Skip:
 		it.State = StateSkip

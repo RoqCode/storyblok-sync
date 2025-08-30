@@ -85,7 +85,7 @@ func (m Model) getFailedItemsForRetry() []PreflightItem {
 					Selected:  true, // Auto-select failed items for retry
 					Run:       RunPending,
 				}
-				item.RecalcState()
+				recalcState(&item)
 				failedItems = append(failedItems, item)
 			}
 		}

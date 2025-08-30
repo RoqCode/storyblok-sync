@@ -2,6 +2,10 @@
 
 Storyblok Sync is a terminal user interface (TUI) that synchronises Stories and Folders between two Storyblok spaces. It allows users to scan source and target spaces, select content, preview collisions and apply changes.
 
+See also:
+- Architecture overview: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+- Planning and roadmap details: [docs/PLANNING.md](./docs/PLANNING.md)
+
 ## Features
 
 - Scan source and target spaces and list stories with metadata.
@@ -30,19 +34,13 @@ Interrupts: `r` to rescan, `q` to abort.
 
 ## TODO (Next Steps)
 
-1. Extract domain core (`internal/core/sync`)
-
-   - Move orchestrator/syncer/types from `internal/ui/sync` to core.
-   - Unify duplicate types (single `PreflightItem`), narrow interfaces.
-   - Adapt UI and `internal/sb.Client` to core API; add unit tests.
-
-2. [Robust rate limiting & retries](./docs/PLANNING.md)
+1. [Robust rate limiting & retries](./docs/PLANNING.md)
 
    - Detect HTTP 429 and parse `Retry-After` in `sb.Client`.
    - Centralize exponential backoff with jitter; honor context cancel.
    - Add tests for backoff, header parsing, and transient errors.
 
-3. Interactive Diff & Merge View (Preflight)
+2. Interactive Diff & Merge View (Preflight)
 
    - Screen/state: add a Diff view for colliding stories with side‑by‑side source/target.
    - Data: fetch full raw payloads; normalize; ignore read‑only fields; focus on `content` + slugs.
@@ -51,7 +49,7 @@ Interrupts: `r` to rescan, `q` to abort.
    - Merge: build merged JSON, validate minimal invariants, store decision for the item, feed merged payload into sync.
    - Tests: diff correctness on maps/arrays, large payload performance (bench/light tests), decision persistence.
 
-4. RichText preview
+3. RichText preview
 
    - Detect RichText fields (root `type=doc`) in story content.
    - Add preview toggle in Diff and Browse: raw JSON vs rendered preview.
@@ -59,35 +57,35 @@ Interrupts: `r` to rescan, `q` to abort.
    - Sanitize/link handling; no external fetches; keep it fast and safe.
    - Tests with fixtures under `testdata/` for common node types and edge cases.
 
-5. UX improvements
+4. UX improvements
 
    - Publish state UI: show publish/unpublished badge in lists; in Preflight allow per‑item publish toggle (stories only), defaulting from source + plan policy; persist in plan and respect during sync.
    - Per‑item progress, pause/cancel, clearer error surfacing in Sync view.
    - Persist browse collapse across screens; snapshot tests.
 
-6. Performance & caching
+5. Performance & caching
 
    - Bounded worker pool + token-bucket rate limiter.
    - Reuse `ContentManager` more broadly; add simple metrics.
    - Concurrency tests with deterministic ordering.
 
-7. Security & logging
+6. Security & logging
 
    - Redact tokens; avoid logging large payloads by default.
    - Structured logs with levels; audit for accidental secrets.
 
-8. CI & releases
+7. CI & releases
 
    - GitHub Actions: `go fmt/vet/test` + `staticcheck` on PRs.
    - Goreleaser for multi-arch binaries; release notes template.
 
-9. Dry-run mode (low priority)
+8. Dry-run mode (low priority)
 
    - Core: no-op write layer that still produces full reports.
    - UI toggle; clear messaging in Report view.
    - Tests verifying zero write calls and identical plan.
 
-10. Component sync (low priority)
+9. Component sync (low priority)
 
 - Mode toggle: switch between Stories and Components in the UI.
 - API: extend client to list/get/create/update components; handle groups and display names.
@@ -107,11 +105,13 @@ storyblok-sync/
 ├─ internal/
 │  ├─ ui/                 # Bubble Tea models, views and keybinds
 │  ├─ sb/                 # Storyblok API client
-│  └─ config/             # token/config loading and saving
+│  ├─ config/             # token/config loading and saving
+│  └─ core/
+│     └─ sync/            # domain sync core (planner/orchestrator/syncer)
 └─ testdata/              # JSON fixtures
 ```
 
-Future modules (`internal/core`, `infra`) will house the sync logic and infrastructure helpers described in the roadmap.
+The sync core has been extracted to `internal/core/sync`. Future modules (`infra`) will house infrastructure helpers described in the roadmap. For a deeper dive into responsibilities and data flow, see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
 
 ## Contributing
 

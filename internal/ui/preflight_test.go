@@ -156,15 +156,15 @@ func TestViewPreflightShowsStateCell(t *testing.T) {
 	// Use the new viewport-based render
 	m.updatePreflightViewport()
 	out := m.renderPreflightHeader() + "\n" + m.renderViewportContent() + "\n" + m.renderPreflightFooter()
-	if !strings.Contains(out, stateStyles[StateCreate].Render(string(StateCreate))) {
+	if !strings.Contains(out, stateStyles[StateCreate].Render(stateLabel(StateCreate))) {
 		t.Fatalf("expected create state cell")
 	}
 
 	m.preflight.items[0].Skip = true
-	m.preflight.items[0].RecalcState()
+	recalcState(&m.preflight.items[0])
 	m.updatePreflightViewport()
 	out = m.renderPreflightHeader() + "\n" + m.renderViewportContent() + "\n" + m.renderPreflightFooter()
-	if !strings.Contains(out, stateStyles[StateSkip].Render(string(StateSkip))) {
+	if !strings.Contains(out, stateStyles[StateSkip].Render(stateLabel(StateSkip))) {
 		t.Fatalf("expected skip state cell")
 	}
 }

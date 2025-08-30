@@ -10,8 +10,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
+	sync "storyblok-sync/internal/core/sync"
 	"storyblok-sync/internal/sb"
-	"storyblok-sync/internal/ui/sync"
 )
 
 // Constants for sync operations and timeouts
@@ -44,9 +44,7 @@ func (cm *contentManager) ensureContent(ctx context.Context, story sb.Story) (sb
 }
 
 // Legacy wrappers for utility functions - now uses the extracted module
-func prepareStoryForCreation(story sb.Story) sb.Story {
-	return sync.PrepareStoryForCreation(story)
-}
+func prepareStoryForCreation(story sb.Story) sb.Story { return sync.PrepareStoryForCreation(story) }
 
 func prepareStoryForUpdate(source, target sb.Story) sb.Story {
 	return sync.PrepareStoryForUpdate(source, target)
@@ -61,6 +59,7 @@ func (m *Model) resolveParentFolder(ctx context.Context, story sb.Story) (sb.Sto
 	}
 
 	parentSlugStr := sync.ParentSlug(story.FullSlug)
+
 	if parentSlugStr == "" {
 		story.FolderID = nil
 		return story, warning, nil
@@ -136,10 +135,7 @@ func (m *Model) buildTargetFolderMap() map[string]sb.Story {
 // findMissingFolderPaths analyzes selected items and identifies missing parent folders
 func (m *Model) findMissingFolderPaths(items []PreflightItem) map[string]sb.Story {
 	planner := sync.NewPreflightPlanner(m.storiesSource, m.storiesTarget)
-
-	// Convert UI PreflightItems to sync PreflightItems
-	syncItems := convertToSyncPreflightItems(items)
-	missingFolders := planner.FindMissingFolderPaths(syncItems)
+	missingFolders := planner.FindMissingFolderPaths(items)
 
 	// Convert slice to map for backward compatibility
 	folderMap := make(map[string]sb.Story)
@@ -152,13 +148,7 @@ func (m *Model) findMissingFolderPaths(items []PreflightItem) map[string]sb.Stor
 // optimizePreflight deduplicates entries, pre-plans missing folders, and sorts by sync order (folders first).
 func (m *Model) optimizePreflight() {
 	planner := sync.NewPreflightPlanner(m.storiesSource, m.storiesTarget)
-
-	// Convert UI PreflightItems to sync PreflightItems
-	syncItems := convertToSyncPreflightItems(m.preflight.items)
-	optimizedSyncItems := planner.OptimizePreflight(syncItems)
-
-	// Convert back to UI PreflightItems
-	m.preflight.items = convertFromSyncPreflightItems(optimizedSyncItems)
+	m.preflight.items = planner.OptimizePreflight(m.preflight.items)
 }
 
 func (m *Model) runNextItem() tea.Cmd {
@@ -657,9 +647,7 @@ func (m *Model) processTranslatedSlugs(sourceStory sb.Story, existingStories []s
 // Legacy helper functions removed as bulk operations module was deleted.
 
 // Legacy wrapper for parent slug extraction
-func parentSlug(full string) string {
-	return sync.ParentSlug(full)
-}
+func parentSlug(full string) string { return sync.ParentSlug(full) }
 
 // Adapter functions to convert between UI and sync module types
 
@@ -680,101 +668,4 @@ func (ra *reportAdapter) AddError(slug, operation string, duration int64, source
 	ra.report.AddError(slug, operation, err.Error(), duration, sourceStory)
 }
 
-// convertToSyncPreflightItems converts UI PreflightItem slice to sync PreflightItem slice
-func convertToSyncPreflightItems(uiItems []PreflightItem) []sync.PreflightItem {
-	syncItems := make([]sync.PreflightItem, len(uiItems))
-	for i, uiItem := range uiItems {
-		syncItems[i] = sync.PreflightItem{
-			Story:     uiItem.Story,
-			Collision: uiItem.Collision,
-			Skip:      uiItem.Skip,
-			Selected:  uiItem.Selected,
-			State:     mapUIStateToSync(uiItem.State),
-			Run:       convertRunStateToString(uiItem.Run),
-		}
-	}
-	return syncItems
-}
-
-// convertFromSyncPreflightItems converts sync PreflightItem slice to UI PreflightItem slice
-func convertFromSyncPreflightItems(syncItems []sync.PreflightItem) []PreflightItem {
-	uiItems := make([]PreflightItem, len(syncItems))
-	for i, syncItem := range syncItems {
-		uiItems[i] = PreflightItem{
-			Story:     syncItem.Story,
-			Collision: syncItem.Collision,
-			Skip:      syncItem.Skip,
-			Selected:  syncItem.Selected,
-			State:     mapSyncStateToUI(syncItem.State),
-			Run:       convertStringToRunState(syncItem.Run),
-		}
-	}
-	return uiItems
-}
-
-// Helper functions for type conversion
-func convertRunStateToString(runState RunState) string {
-	switch runState {
-	case RunPending:
-		return "pending"
-	case RunRunning:
-		return "running"
-	case RunDone:
-		return "success"
-	case RunCancelled:
-		return "failed"
-	default:
-		return "pending"
-	}
-}
-
-func convertStringToRunState(runString string) RunState {
-	switch runString {
-	case "pending":
-		return RunPending
-	case "running":
-		return RunRunning
-	case "success":
-		return RunDone
-	case "failed":
-		return RunCancelled
-	default:
-		return RunPending
-	}
-}
-
-// --- State mapping helpers between UI (C/U/S) and sync (create/update/skip) ---
-func mapUIStateToSync(state SyncState) string {
-	switch state {
-	case StateCreate:
-		return sync.StateCreate
-	case StateUpdate:
-		return sync.StateUpdate
-	case StateSkip:
-		return sync.StateSkip
-	}
-	// Fallback for textual or lowercase input
-	switch strings.ToLower(string(state)) {
-	case "c", "create":
-		return sync.StateCreate
-	case "u", "update":
-		return sync.StateUpdate
-	case "s", "skip":
-		return sync.StateSkip
-	default:
-		return sync.StateUpdate
-	}
-}
-
-func mapSyncStateToUI(state string) SyncState {
-	switch strings.ToLower(state) {
-	case sync.StateCreate, "c":
-		return StateCreate
-	case sync.StateUpdate, "u":
-		return StateUpdate
-	case sync.StateSkip, "s":
-		return StateSkip
-	default:
-		return SyncState(state)
-	}
-}
+// Removed type conversion helpers: UI now uses core PreflightItem directly

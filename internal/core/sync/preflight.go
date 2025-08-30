@@ -8,7 +8,7 @@ import (
 	"storyblok-sync/internal/sb"
 )
 
-// PreflightItem represents an item in the preflight plan (using UI types for compatibility)
+// PreflightItem represents an item in the preflight plan (using core types)
 type PreflightItem struct {
 	Story     sb.Story
 	Collision bool
@@ -16,6 +16,8 @@ type PreflightItem struct {
 	Selected  bool
 	State     string // StateCreate, StateUpdate, etc.
 	Run       string // RunPending, RunRunning, etc.
+	// Optional UI-only field for inline messages
+	Issue string
 }
 
 // State constants for preflight items

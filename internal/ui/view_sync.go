@@ -153,7 +153,7 @@ func (m *Model) updateSyncViewport() {
 		status, color := m.getItemStatusDisplay(item.Run)
 
 		// Show sync action and current state
-		actionText := string(item.State)
+		actionText := stateLabel(item.State)
 		if item.Run == RunRunning {
 			actionText += " (läuft...)"
 		}
@@ -183,7 +183,7 @@ func (m *Model) updateSyncViewport() {
 	m.viewport.SetContent(content.String())
 }
 
-func (m Model) getItemStatusDisplay(runState RunState) (string, lipgloss.Style) {
+func (m Model) getItemStatusDisplay(runState string) (string, lipgloss.Style) {
 	switch runState {
 	case RunDone:
 		return "✓", okStyle

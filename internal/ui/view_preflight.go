@@ -66,7 +66,7 @@ func (m Model) renderPreflightContent() string {
 		if visPos == m.preflight.listIndex {
 			lineStyle = cursorLineStyle.Copy().Width(m.width - 4)
 		}
-		if it.State == StateSkip {
+		if strings.ToLower(it.State) == StateSkip {
 			lineStyle = lineStyle.Faint(true)
 		}
 		content = lineStyle.Render(content)
@@ -79,15 +79,15 @@ func (m Model) renderPreflightContent() string {
 		case RunRunning:
 			stateCell = m.spinner.View()
 		case RunDone:
-			stateCell = stateDoneStyle.Render(string(it.State))
+			stateCell = stateDoneStyle.Render(stateLabel(it.State))
 		case RunCancelled:
 			stateCell = lipgloss.NewStyle().Foreground(lipgloss.Color("9")).Background(lipgloss.Color("0")).Bold(true).Render("X")
 		default:
 			if it.State != "" {
-				if st, ok := stateStyles[it.State]; ok {
-					stateCell = st.Render(string(it.State))
+				if st, ok := stateStyles[strings.ToLower(it.State)]; ok {
+					stateCell = st.Render(stateLabel(it.State))
 				} else {
-					stateCell = string(it.State)
+					stateCell = it.State
 				}
 			}
 		}

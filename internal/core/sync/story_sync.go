@@ -252,7 +252,7 @@ func (ss *StorySyncer) SyncFolder(ctx context.Context, folder sb.Story, shouldPu
 
 	// Debug logging
 	log.Printf("DEBUG: syncFolder %s has content: %t, is_folder: %t",
-		folder.FullSlug, len(fullFolder.Content) > 0, fullFolder.IsFolder)
+		folder.FullSlug, len(fullFolder.Content) > 0, folder.IsFolder)
 
 	// Check if folder already exists in target
 	existing, err := ss.api.GetStoriesBySlug(ctx, ss.targetSpaceID, folder.FullSlug)

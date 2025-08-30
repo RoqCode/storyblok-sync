@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
 	"testing"
 
 	"storyblok-sync/internal/sb"
@@ -19,28 +18,7 @@ func TestSyncRetryLogic(t *testing.T) {
 	t.Skip("Retry logic has been moved to extracted sync module")
 }
 
-func TestConvertPreflightItems_StateMappingRoundtrip(t *testing.T) {
-	// Build minimal items with only state variations
-	items := []PreflightItem{
-		{State: StateCreate},
-		{State: StateUpdate},
-		{State: StateSkip},
-	}
-
-	syncItems := convertToSyncPreflightItems(items)
-	got := []string{syncItems[0].State, syncItems[1].State, syncItems[2].State}
-	want := []string{"create", "update", "skip"}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("unexpected mapping to sync states: got %v want %v", got, want)
-	}
-
-	roundTrip := convertFromSyncPreflightItems(syncItems)
-	gotUI := []SyncState{roundTrip[0].State, roundTrip[1].State, roundTrip[2].State}
-	wantUI := []SyncState{StateCreate, StateUpdate, StateSkip}
-	if !reflect.DeepEqual(gotUI, wantUI) {
-		t.Fatalf("unexpected roundtrip UI states: got %v want %v", gotUI, wantUI)
-	}
-}
+// Conversion roundtrip test removed: UI now uses core PreflightItem directly
 
 func TestTranslatedSlugsProcessing(t *testing.T) {
 	sourceStory := sb.Story{

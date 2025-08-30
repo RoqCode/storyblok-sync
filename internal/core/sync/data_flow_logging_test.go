@@ -47,6 +47,11 @@ func newLoggingAPI(t *testing.T, sourceID, targetID int) *loggingAPI {
 	}
 }
 
+// mockFolderReport implements Report interface for EnsureFolderPathStatic tests
+type mockFolderReport struct{}
+
+func (*mockFolderReport) AddSuccess(slug, operation string, duration int64, story *sb.Story) {}
+
 // ---- Helpers ----
 func (api *loggingAPI) logJSON(prefix string, v interface{}) {
 	b, _ := json.MarshalIndent(v, "", "  ")

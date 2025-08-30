@@ -51,10 +51,24 @@ var (
 	symbolRoot   = fgSymbol("214", "R")
 )
 
-var stateStyles = map[SyncState]lipgloss.Style{
+var stateStyles = map[string]lipgloss.Style{
 	StateCreate: stateCreateStyle,
 	StateUpdate: stateUpdateStyle,
 	StateSkip:   stateSkipStyle,
+}
+
+// stateLabel renders the compact label for a textual state
+func stateLabel(state string) string {
+	switch strings.ToLower(state) {
+	case StateCreate:
+		return "C"
+	case StateUpdate:
+		return "U"
+	case StateSkip:
+		return "S"
+	default:
+		return state
+	}
 }
 
 func fgSymbol(col, ch string) string {

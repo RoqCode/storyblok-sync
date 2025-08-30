@@ -3,6 +3,7 @@ package ui
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -120,7 +121,7 @@ func (m Model) handlePreflightKey(msg tea.KeyMsg) (Model, tea.Cmd) {
 			it := &m.preflight.items[m.preflight.listIndex]
 			if it.Collision && it.Selected {
 				it.Skip = !it.Skip
-				it.RecalcState()
+				recalcState(it)
 				m.updateViewportContent()
 			}
 		}
@@ -128,7 +129,7 @@ func (m Model) handlePreflightKey(msg tea.KeyMsg) (Model, tea.Cmd) {
 		for i := range m.preflight.items {
 			if m.preflight.items[i].Collision && m.preflight.items[i].Selected {
 				m.preflight.items[i].Skip = true
-				m.preflight.items[i].RecalcState()
+				recalcState(&m.preflight.items[i])
 			}
 		}
 		m.updateViewportContent()
@@ -228,7 +229,7 @@ func (m *Model) startPreflight() {
 		st := m.storiesSource[idx]
 		sel := m.selection.selected[st.FullSlug]
 		it := PreflightItem{Story: st, Collision: target[st.FullSlug], Selected: sel, Skip: !sel}
-		it.RecalcState()
+		recalcState(&it)
 		items = append(items, it)
 		for _, ch := range children[idx] {
 			walk(ch)
@@ -321,7 +322,7 @@ func (m *Model) calculatePreflightCursorLine() int {
 
 		// Apply same styling (without cursor highlight)
 		lineStyle := lipgloss.NewStyle().Width(contentWidth)
-		if it.State == StateSkip {
+		if strings.ToLower(it.State) == StateSkip {
 			lineStyle = lineStyle.Faint(true)
 		}
 		styled := lineStyle.Render(content)
